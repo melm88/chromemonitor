@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
    // your code here
-	var changeFrame=0;
+	//var changeFrame=0;
 	var record="";
 	var charCount=0;
-	var keyPoints=0;
+	var keyPoints="";
 	document.onkeyup=function(e) {
 		//Shift Key released
 		if(e.which == 16){
@@ -81,8 +81,10 @@ document.addEventListener('DOMContentLoaded', function() {
        
        function mouseClicked(e) {
 		   //alert("Mouse Clicked !");
-			
 			//console.log("Mouse is clicked!"+e.screenX + " " + e.screenY+" "+e.target+"Tag Name :"+e.target.tagName);
+			chrome.extension.sendMessage({greeting: "mouse", data: "MOUSE3: Mouse clicked! ("+e.screenX + ", " + e.screenY+") "+e.target.nodeName+" [Tag Name :"+e.target.tagName+"]"}, function(response) {
+					console.log(response);
+			});
             //console.log(e.target.getAttribute('type'));
             if(e.target.tagName=='INPUT')
             {
@@ -120,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                //console.log(inputs[index]+":"+inputs[index].value+"\n");
 			   logformfields += inputs[index]+"~ "+inputs[index].name+": "+inputs[index].value+" ["+inputs[index].type+"]\n"; 
 			}
-			chrome.extension.sendMessage({greeting: "mouse", data: "MOUSE2: "+logformfields}, function(response) {
+			chrome.extension.sendMessage({greeting: "hello", data: "MOUSE2: "+logformfields}, function(response) {
 				console.log(response);
 			});
 		}

