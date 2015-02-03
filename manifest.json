@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+
+  "name": "Chrome Monitor",
+  "description": "This extension logs user activity on a Chrome browser",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_icon": "am_48.png",
+	"default_title": "Oh! I'm watching you!"
+  },
+  "content_scripts": [
+        {
+            "matches": [
+                "http://*/*",
+                "https://*/*"
+            ],
+            "js": ["jquery-1.11.2.min.js","contentscript.js"],
+			"run_at": "document_start"
+        }
+    ],
+  "permissions": [
+    "activeTab",
+    "https://ajax.googleapis.com/",
+	"http://*/*",
+    "https://*/*",
+	"tabs",
+	"idle",
+	"identity",
+	"identity.email"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+	"persistent": false
+  },
+  "web_accessible_resources": ["inject.js"]
+}
