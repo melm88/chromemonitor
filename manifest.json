@@ -32,7 +32,8 @@
 	"tabs",
 	"idle",
 	"identity",
-	"identity.email"
+	"identity.email",
+	"notifications"
   ],
   "background": {
     "scripts": ["background.js"],

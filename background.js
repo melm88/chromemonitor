@@ -18,6 +18,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if(changeInfo.status == "complete"){ 
         //do url check
 		var url_str = tab.url;
+		urls[tabId] = tab.url;
         var patt = new RegExp("chrome://");
         var res = patt.test(url_str);
 		if(res == false){
@@ -34,13 +35,53 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     }
 });
 
+//Notification
+function notifyMe(mesg) {
+  // Let's check if the browser supports notifications
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+
+  // Let's check if the user is okay to get some notification
+  else if (Notification.permission === "granted") {
+    // If it's okay let's create a notification
+    var notification = new Notification(mesg);
+  }
+
+  // Otherwise, we need to ask the user for permission
+  // Note, Chrome does not implement the permission static property
+  // So we have to check for NOT 'denied' instead of 'default'
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+
+      // Whatever the user answers, we make sure we store the information
+      if(!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+
+      // If the user is okay, let's create a notification
+      if (permission === "granted") {
+        var notification = new Notification(mesg);
+      }
+    });
+  }
+
+  // At last, if the user already denied any notification, and you 
+  // want to be respectful there is no need to bother him any more.
+}
+
 //Gets User Email on first launch of the app and stores it in LocalStorage
 chrome.identity.getProfileUserInfo(function(userInfo){
 	if(userInfo.email == ""){
-		alert("Please Sign-In to Chrome Browser.");
+		//alert("Please Sign-In to Chrome Browser.");
+		notifyMe("Please Sign-In to Chrome Browser.");
 		storeUserID("NULL");
 	}else{
 		console.log("User: "+userInfo.email);
+		//alert("aah: "+localStorage.getItem('userid'));
+		/* if(localStorage.getItem('userid') == null || localStorage.getItem('userid').indexOf('@') == -1){
+			notifyMe("Chrome Monitor enabled for account: "+userInfo.email);
+		} */
 		storeUserID(userInfo.email);
 	}
 	localStorage.removeItem("keystrokes");
@@ -52,9 +93,11 @@ chrome.identity.onSignInChanged.addListener(function(account, signedIn){
 	console.log(account.id+" ~ "+signedIn);
 	chrome.identity.getProfileUserInfo(function(userInfo){
 		if(userInfo.email == ""){
-			alert("Please Login to Chrome Browser");
+			//alert("Please Login to Chrome Browser");
+			notifyMe("Please Sign-In to Chrome Browser.");
 		}else{
 			console.log("User: "+userInfo.email);
+			//notifyMe("Chrome Monitor enabled for account: "+userInfo.email);
 			storeUserID(userInfo.email);
 		}
 		localStorage.removeItem("keystrokes");
@@ -136,6 +179,7 @@ chrome.tabs.onActivated.addListener(function(changeInfo) {
 	}
 	var tab = chrome.tabs.get(changeInfo.tabId, function(tab) {
 		var url_str = tab.url;
+		urls[changeInfo.tabId] = tab.url;
         var patt = new RegExp("chrome://");
         var res = patt.test(url_str);
 		if(res == false){
